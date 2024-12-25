@@ -105,7 +105,7 @@ const TableCell = ({
   className,
   sorted,
   ...props
-}: TablePrimitive.CellProps & { sorted: boolean }) => (
+}: TablePrimitive.CellProps & { sorted?: boolean }) => (
   <TablePrimitive.Cell
     className={cn('p-4 align-middle', sorted && 'bg-slate-200/25', className)}
     {...props}
