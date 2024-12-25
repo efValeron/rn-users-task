@@ -33,11 +33,13 @@ const MIN_COLUMN_WIDTHS = [120, 120, 300, 80, 120]
 const fetchUsers = async ({
   filter,
   limit,
+  setTotalPages,
   skip,
   sortConfig,
 }: {
   filter?: null | { key: string; value: string }
   limit?: number
+  setTotalPages: (pages: number) => void
   skip?: number
   sortConfig?: { direction: 'asc' | 'desc' | 'none'; key: string }
 }) => {
@@ -51,10 +53,12 @@ const fetchUsers = async ({
     filter && filter.value !== 'all' ? `/filter?key=${filter.key}&value=${filter.value}` : ''
 
   const res = await baseApi.get<GetUsersResponse>(
-    `/users?${limit && skip ? `limit=${limit}&skip=${skip}` : ''}${
+    `/users${filterParam}${limit && skip ? `${!filterParam ? '?' : ''}limit=${limit}&skip=${skip}` : ''}${
       urlParams.toString() ? `&${urlParams.toString()}` : ''
-    }${filterParam}`
+    }`
   )
+
+  setTotalPages(res.data ? Math.ceil(res.data.total / 30) : 1)
 
   return res.data
 }
@@ -95,12 +99,11 @@ export default function Index() {
     })
   }
 
+  const [totalPages, setTotalPages] = useState(1)
   const { data, error, isLoading, refetch } = useQuery({
-    queryFn: () => fetchUsers({ filter, limit, skip, sortConfig }),
-    queryKey: ['users', sortConfig, filter, page, limit, skip],
+    queryFn: () => fetchUsers({ filter, limit, setTotalPages, skip, sortConfig }),
+    queryKey: ['users', sortConfig, filter, page, limit, skip, setTotalPages],
   })
-
-  const totalPages = data ? Math.ceil(data.total / limit) : 1
 
   return (
     <View className={'flex flex-1 items-center justify-center bg-[#FFFFFF]'}>
